@@ -220,7 +220,15 @@ function drawAreas() {
       area.owner === 'player' ? 'red' :
       area.owner === 'enemy' ? 'orange' : 'white';
     ctx.fill();
-    ctx.strokeStyle = selectedArea === area ? 'blue' : 'black';
+
+    // 縁取りの設定
+    if (selectedArea === area) {
+      ctx.lineWidth = 5; // 太くする
+      ctx.strokeStyle = 'darkred'; // 濃い赤色
+    } else {
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'black';
+    }
     ctx.stroke();
 
     // ウイルス数と増殖率を表示
@@ -256,7 +264,7 @@ canvas.addEventListener('click', function(event) {
   if (clickedArea) {
     if (!selectedArea) {
       // 自エリアを選択
-      if (clickedArea.owner === 'player' && clickedArea.virusCount > 1) {
+      if (clickedArea.owner === 'player' && clickedArea.virusCount > 0) {
         selectedArea = clickedArea;
         drawAreas();
       }
@@ -299,7 +307,7 @@ function moveVirus(fromId, toId) {
       return;
     }
 
-    const movingVirus = Math.floor(fromArea.virusCount / 2);
+    const movingVirus = fromArea.virusCount;
     if (movingVirus <= 0) return;
 
     fromArea.virusCount -= movingVirus;
@@ -321,12 +329,44 @@ function moveVirus(fromId, toId) {
 function updateAttackBlocks() {
   const speed = 0.01; // 攻撃ブロックの移動速度
 
-  attackBlocks.forEach((block, index) => {
+  for (let i = 0; i < attackBlocks.length; i++) {
+    const block = attackBlocks[i];
     block.progress += speed;
 
     // 座標の更新
     block.x = block.fromArea.x + (block.toArea.x - block.fromArea.x) * block.progress;
     block.y = block.fromArea.y + (block.toArea.y - block.fromArea.y) * block.progress;
+
+    // 攻撃ブロック同士の衝突判定
+    for (let j = i + 1; j < attackBlocks.length; j++) {
+      const otherBlock = attackBlocks[j];
+
+      // 異なる所有者の場合のみ衝突判定
+      if (block.owner !== otherBlock.owner) {
+        const dx = block.x - otherBlock.x;
+        const dy = block.y - otherBlock.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < 20) { // 攻撃ブロックの半径の合計より小さい場合
+          if (block.virusCount > otherBlock.virusCount) {
+            block.virusCount -= otherBlock.virusCount;
+            attackBlocks.splice(j, 1);
+            j--; // インデックスを調整
+          } else if (block.virusCount < otherBlock.virusCount) {
+            otherBlock.virusCount -= block.virusCount;
+            attackBlocks.splice(i, 1);
+            i--; // インデックスを調整
+            break; // 外側のループを抜ける
+          } else {
+            // 同数の場合、両方消える
+            attackBlocks.splice(j, 1);
+            attackBlocks.splice(i, 1);
+            i--; // インデックスを調整
+            break; // 外側のループを抜ける
+          }
+        }
+      }
+    }
 
     if (block.progress >= 1) {
       // 攻撃ブロックが到達した場合の処理
@@ -361,14 +401,15 @@ function updateAttackBlocks() {
       }
 
       // 攻撃ブロックの削除
-      attackBlocks.splice(index, 1);
+      attackBlocks.splice(i, 1);
+      i--; // インデックスを調整
     }
-  });
+  }
 }
 
 // 敵の行動（攻撃ブロックの作成を追加）
 function enemyAction() {
-  const enemyAreas = areas.filter(area => area.owner === 'enemy' && area.virusCount > 1);
+  const enemyAreas = areas.filter(area => area.owner === 'enemy' && area.virusCount > 0);
   enemyAreas.forEach(area => {
     // 隣接するエリアを取得
     const neighboringAreas = connections
@@ -391,8 +432,8 @@ function enemyAction() {
       }
     }
 
-    if (targetArea && area.virusCount > 1) {
-      const movingVirus = Math.floor(area.virusCount / 2);
+    if (targetArea && area.virusCount > 0) {
+      const movingVirus = area.virusCount;
       if (movingVirus <= 0) return;
 
       area.virusCount -= movingVirus;
