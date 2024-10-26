@@ -75,6 +75,13 @@ function createRandomStage(stageNumber) {
 function drawAreas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // ステージ番号を左上に表示
+  ctx.fillStyle = 'black';
+  ctx.font = '20px Arial';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(`ステージ ${currentStage}`, 10, 10);
+
   // エリア間の線を描画
   connections.forEach(conn => {
     const area1 = areas.find(area => area.id === conn[0]);
