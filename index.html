@@ -9,13 +9,26 @@
   <div id="gameContainer">
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <div id="tutorial" class="overlay">
-      <!-- チュートリアルの内容は以前と同じ -->
+      <div class="content">
+        <h2>チュートリアル</h2>
+        <p id="tutorialText"></p>
+        <button id="prevButton">戻る</button>
+        <button id="nextButton">次へ</button>
+      </div>
     </div>
     <div id="levelComplete" class="overlay">
-      <!-- ステージクリア画面 -->
+      <div class="content">
+        <h2>ステージクリア！</h2>
+        <button id="nextLevelButton">次のレベル</button>
+        <button id="retryLevelButton">もう一回同じレベル</button>
+      </div>
     </div>
     <div id="gameOver" class="overlay">
-      <!-- ゲームオーバー画面 -->
+      <div class="content">
+        <h2>ゲームオーバー</h2>
+        <button id="retryButton">もう一回同じレベル</button>
+        <button id="restartButton">最初に戻る</button>
+      </div>
     </div>
   </div>
   <script src="script.js"></script>
