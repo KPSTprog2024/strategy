@@ -3,10 +3,8 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 // オーバーレイ要素の取得
-const tutorialOverlay = document.getElementById('tutorial');
-const tutorialText = document.getElementById('tutorialText');
-const prevButton = document.getElementById('prevButton');
-const nextButton = document.getElementById('nextButton');
+const startScreen = document.getElementById('startScreen');
+const startGameButton = document.getElementById('startGameButton');
 const levelCompleteOverlay = document.getElementById('levelComplete');
 const nextLevelButton = document.getElementById('nextLevelButton');
 const retryLevelButton = document.getElementById('retryLevelButton');
@@ -27,50 +25,24 @@ let attackBlocks = [];
 // エリアの半径
 const AREA_RADIUS = 40;
 
-// チュートリアル用の変数
-let tutorialSteps = [
-  'ようこそ！このゲームでは赤いエリアがあなたの領地です。',
-  '自分のエリアをクリックして選択し、隣接するエリアをクリックしてウイルスを移動できます。',
-  'ウイルスは時間とともに増殖します。全エリアを赤色にすると勝利です。',
-  '敵もエリアを占領しようとしますので注意してください。',
-  'それではゲームを始めましょう！'
-];
-let currentTutorialStep = 0;
-
 // ウイルス増殖と敵行動のタイミング管理
 let virusGrowthCounter = 0;
 let enemyActionCounter = 0;
 
+// グリッドの設定
+const GRID_SIZE = 5; // グリッドの行・列数
+const GRID_WIDTH = canvas.width / GRID_SIZE;
+const GRID_HEIGHT = canvas.height / GRID_SIZE;
+
 // 初期化関数
 function initGame() {
-  currentStage = 0;
-  showTutorial();
+  startScreen.style.display = 'block';
 }
 
-// チュートリアルの表示
-function showTutorial() {
-  tutorialOverlay.style.display = 'block';
-  tutorialText.innerText = tutorialSteps[currentTutorialStep];
-  prevButton.style.display = currentTutorialStep === 0 ? 'none' : 'inline-block';
-  nextButton.innerText = currentTutorialStep === tutorialSteps.length - 1 ? 'ゲーム開始' : '次へ';
-}
-
-// チュートリアルのボタンイベント
-prevButton.addEventListener('click', () => {
-  if (currentTutorialStep > 0) {
-    currentTutorialStep--;
-    showTutorial();
-  }
-});
-
-nextButton.addEventListener('click', () => {
-  if (currentTutorialStep < tutorialSteps.length - 1) {
-    currentTutorialStep++;
-    showTutorial();
-  } else {
-    tutorialOverlay.style.display = 'none';
-    startStage(1);
-  }
+// ゲーム開始ボタンのイベント
+startGameButton.addEventListener('click', () => {
+  startScreen.style.display = 'none';
+  startStage(0); // ステージ0から開始
 });
 
 // ステージの開始
@@ -86,8 +58,10 @@ function startStage(stageNumber) {
 
 // ステージの設定
 function setupStage(stageNumber) {
-  // エリア数と配置の設定
-  if (stageNumber <= 3) {
+  if (stageNumber === 0) {
+    // チュートリアルステージ
+    createAreas(4, stageNumber);
+  } else if (stageNumber <= 3) {
     createAreas(5, stageNumber);
   } else if (stageNumber <= 6) {
     createAreas(7, stageNumber);
@@ -96,48 +70,34 @@ function setupStage(stageNumber) {
   }
 }
 
-// エリアの作成（重ならないように配置）
+// エリアの作成（グリッド上に配置）
 function createAreas(areaCount, stageNumber) {
   areas = [];
   connections = [];
   selectedArea = null;
 
-  let attempts = 0;
-  while (areas.length < areaCount && attempts < 1000) {
-    attempts++;
+  // グリッド上の座標を取得
+  let gridPositions = [];
+  for (let x = 1; x < GRID_SIZE; x++) {
+    for (let y = 1; y < GRID_SIZE; y++) {
+      gridPositions.push({ x: x * GRID_WIDTH, y: y * GRID_HEIGHT });
+    }
+  }
+
+  // ランダムにシャッフル
+  gridPositions.sort(() => Math.random() - 0.5);
+
+  for (let i = 0; i < areaCount; i++) {
+    let pos = gridPositions[i];
     let newArea = {
-      id: areas.length + 1,
-      x: Math.random() * (canvas.width - 2 * AREA_RADIUS) + AREA_RADIUS,
-      y: Math.random() * (canvas.height - 2 * AREA_RADIUS) + AREA_RADIUS,
+      id: i + 1,
+      x: pos.x,
+      y: pos.y,
       owner: 'neutral',
       virusCount: 5,
       growthRate: Math.floor(Math.random() * 2) + 1
     };
-
-    // 他のエリアと重ならないか確認
-    if (areas.every(area => {
-      const dx = area.x - newArea.x;
-      const dy = area.y - newArea.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      return distance >= AREA_RADIUS * 2 + 10; // 少し余裕を持たせる
-    })) {
-      areas.push(newArea);
-    }
-  }
-
-  // エリアが少ない場合は位置を調整して追加
-  if (areas.length < areaCount) {
-    while (areas.length < areaCount) {
-      let newArea = {
-        id: areas.length + 1,
-        x: Math.random() * (canvas.width - 2 * AREA_RADIUS) + AREA_RADIUS,
-        y: Math.random() * (canvas.height - 2 * AREA_RADIUS) + AREA_RADIUS,
-        owner: 'neutral',
-        virusCount: 5,
-        growthRate: Math.floor(Math.random() * 2) + 1
-      };
-      areas.push(newArea);
-    }
+    areas.push(newArea);
   }
 
   // グラフを連結するために最小全域木を作成
@@ -150,10 +110,7 @@ function createAreas(areaCount, stageNumber) {
   for (let i = 0; i < areas.length; i++) {
     for (let j = i + 1; j < areas.length; j++) {
       if (!connections.some(conn => (conn[0] === areas[i].id && conn[1] === areas[j].id) || (conn[0] === areas[j].id && conn[1] === areas[i].id))) {
-        const dx = areas[i].x - areas[j].x;
-        const dy = areas[i].y - areas[j].y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < 200 && Math.random() < 0.3) { // 30%の確率で接続
+        if (Math.random() < 0.3) { // 30%の確率で接続
           connections.push([areas[i].id, areas[j].id]);
         }
       }
@@ -161,26 +118,32 @@ function createAreas(areaCount, stageNumber) {
   }
 
   // 初期配置の設定
-  const enemyAreaCount = Math.floor(areaCount * (stageNumber <= 5 ? 0.2 : 0.4));
-  const enemyInitialVirus = 5 + (stageNumber - 1) * 5;
-  const playerInitialVirus = 10;
+  if (stageNumber === 0) {
+    // ステージ0（チュートリアル）
+    areas[0].owner = 'player';
+    areas[0].virusCount = 10;
+  } else {
+    const enemyAreaCount = Math.floor(areaCount * (stageNumber <= 5 ? 0.2 : 0.4));
+    const enemyInitialVirus = 5 + (stageNumber - 1) * 5;
+    const playerInitialVirus = 10;
 
-  // 敵エリアの設定
-  for (let i = 0; i < enemyAreaCount; i++) {
-    areas[i].owner = 'enemy';
-    areas[i].virusCount = enemyInitialVirus;
-  }
+    // 敵エリアの設定
+    for (let i = 0; i < enemyAreaCount; i++) {
+      areas[i].owner = 'enemy';
+      areas[i].virusCount = enemyInitialVirus;
+    }
 
-  // プレイヤーエリアの設定
-  areas[areas.length - 1].owner = 'player';
-  areas[areas.length - 1].virusCount = playerInitialVirus;
+    // プレイヤーエリアの設定
+    areas[areas.length - 1].owner = 'player';
+    areas[areas.length - 1].virusCount = playerInitialVirus;
 
-  // エリアの再配置（敵とプレイヤーを対角線上に配置）
-  if (stageNumber >= 7) {
-    areas[0].x = AREA_RADIUS + 10;
-    areas[0].y = AREA_RADIUS + 10;
-    areas[areas.length - 1].x = canvas.width - AREA_RADIUS - 10;
-    areas[areas.length - 1].y = canvas.height - AREA_RADIUS - 10;
+    // エリアの再配置（敵とプレイヤーを対角線上に配置）
+    if (stageNumber >= 7) {
+      areas[0].x = GRID_WIDTH;
+      areas[0].y = GRID_HEIGHT;
+      areas[areas.length - 1].x = canvas.width - GRID_WIDTH;
+      areas[areas.length - 1].y = canvas.height - GRID_HEIGHT;
+    }
   }
 }
 
@@ -192,9 +155,17 @@ function drawAreas() {
   connections.forEach(conn => {
     const area1 = areas.find(area => area.id === conn[0]);
     const area2 = areas.find(area => area.id === conn[1]);
+
+    // 線がエリアの外縁から始まるように調整
+    const angle = Math.atan2(area2.y - area1.y, area2.x - area1.x);
+    const x1 = area1.x + AREA_RADIUS * Math.cos(angle);
+    const y1 = area1.y + AREA_RADIUS * Math.sin(angle);
+    const x2 = area2.x - AREA_RADIUS * Math.cos(angle);
+    const y2 = area2.y - AREA_RADIUS * Math.sin(angle);
+
     ctx.beginPath();
-    ctx.moveTo(area1.x, area1.y);
-    ctx.lineTo(area2.x, area2.y);
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
     ctx.strokeStyle = '#ccc';
     ctx.stroke();
   });
@@ -333,9 +304,21 @@ function updateAttackBlocks() {
     const block = attackBlocks[i];
     block.progress += speed;
 
+    // 開始・終了位置をエリアの外縁に設定
+    const dx = block.toArea.x - block.fromArea.x;
+    const dy = block.toArea.y - block.fromArea.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const unitX = dx / distance;
+    const unitY = dy / distance;
+
+    const startX = block.fromArea.x + AREA_RADIUS * unitX;
+    const startY = block.fromArea.y + AREA_RADIUS * unitY;
+    const endX = block.toArea.x - AREA_RADIUS * unitX;
+    const endY = block.toArea.y - AREA_RADIUS * unitY;
+
     // 座標の更新
-    block.x = block.fromArea.x + (block.toArea.x - block.fromArea.x) * block.progress;
-    block.y = block.fromArea.y + (block.toArea.y - block.fromArea.y) * block.progress;
+    block.x = startX + (endX - startX) * block.progress;
+    block.y = startY + (endY - startY) * block.progress;
 
     // 攻撃ブロック同士の衝突判定
     for (let j = i + 1; j < attackBlocks.length; j++) {
@@ -368,7 +351,9 @@ function updateAttackBlocks() {
       }
     }
 
-    if (block.progress >= 1) {
+    // 攻撃ブロックがターゲットエリアの外縁に到達したか確認
+    const targetDistance = Math.sqrt((block.x - block.toArea.x) ** 2 + (block.y - block.toArea.y) ** 2);
+    if (targetDistance <= AREA_RADIUS) {
       // 攻撃ブロックが到達した場合の処理
       const toArea = block.toArea;
       const movingVirus = block.virusCount;
@@ -476,7 +461,7 @@ function gameLoop() {
     virusGrowthCounter = 0;
   }
 
-  if (enemyActionCounter >= 1000) { // 1000msごとに敵の行動
+  if (enemyActionCounter >= 1000 && currentStage !== 0) { // ステージ0では敵の行動なし
     enemyAction();
     enemyActionCounter = 0;
   }
