@@ -408,15 +408,15 @@ function enemyAction() {
 // 勝敗の判定
 function checkGameStatus() {
   const playerOwned = areas.filter(area => area.owner === 'player').length;
-  const enemyOwned = areas.filter(area => area.owner === 'enemy').length;
+  const totalAreas = areas.length;
 
   if (playerOwned === 0) {
     // プレイヤーのエリアがなくなった場合、ゲームオーバー
     clearInterval(gameInterval);
     attackBlocks = []; // 攻撃ブロックをクリア
     gameOverOverlay.style.display = 'block';
-  } else if (enemyOwned === 0) {
-    // 敵のエリアがなくなった場合、ステージクリア
+  } else if (playerOwned === totalAreas) {
+    // すべてのエリアがプレイヤーのものになった場合、ステージクリア
     clearInterval(gameInterval);
     attackBlocks = []; // 攻撃ブロックをクリア
     levelCompleteOverlay.style.display = 'block';
