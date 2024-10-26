@@ -162,7 +162,7 @@ const stages = [
       { id: 4, x: 250, y: 350, owner: 'neutral', virusCount: 25, growthRate: 1 },
       { id: 5, x: 550, y: 350, owner: 'neutral', virusCount: 25, growthRate: 2 },
       { id: 6, x: 100, y: 500, owner: 'neutral', virusCount: 25, growthRate: 2 },
-      { id: 7, x: 700, y: 500, owner: 'enemy', virusCount: 40, growthRate: 1 },
+      { id: 7, x: 700, y: 500, owner: 'enemy', virusCount: 20, growthRate: 1 },
     ],
     connections: [
       [1, 3],
