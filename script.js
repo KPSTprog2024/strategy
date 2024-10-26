@@ -1,10 +1,95 @@
-// 既存のコードは省略し、追加・変更点を中心に説明します。
+// キャンバスとコンテキストの取得
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// オーバーレイ要素の取得
+const tutorialOverlay = document.getElementById('tutorial');
+const tutorialText = document.getElementById('tutorialText');
+const prevButton = document.getElementById('prevButton');
+const nextButton = document.getElementById('nextButton');
+const levelCompleteOverlay = document.getElementById('levelComplete');
+const nextLevelButton = document.getElementById('nextLevelButton');
+const retryLevelButton = document.getElementById('retryLevelButton');
+const gameOverOverlay = document.getElementById('gameOver');
+const retryButton = document.getElementById('retryButton');
+const restartButton = document.getElementById('restartButton');
+
+// ゲーム状態の変数
+let currentStage = 0;
+let stages = [];
+let areas = [];
+let connections = [];
+let selectedArea = null;
+let gameInterval;
 
 // 攻撃ブロックを管理する配列
 let attackBlocks = [];
 
 // エリアの半径
 const AREA_RADIUS = 40;
+
+// チュートリアル用の変数
+let tutorialSteps = [
+  'ようこそ！このゲームでは赤いエリアがあなたの領地です。',
+  '自分のエリアをクリックして選択し、隣接するエリアをクリックしてウイルスを移動できます。',
+  'ウイルスは時間とともに増殖します。全エリアを赤色にすると勝利です。',
+  '敵もエリアを占領しようとしますので注意してください。',
+  'それではゲームを始めましょう！'
+];
+let currentTutorialStep = 0;
+
+// 初期化関数
+function initGame() {
+  currentStage = 0;
+  showTutorial();
+}
+
+// チュートリアルの表示
+function showTutorial() {
+  tutorialOverlay.style.display = 'block';
+  tutorialText.innerText = tutorialSteps[currentTutorialStep];
+  prevButton.style.display = currentTutorialStep === 0 ? 'none' : 'inline-block';
+  nextButton.innerText = currentTutorialStep === tutorialSteps.length - 1 ? 'ゲーム開始' : '次へ';
+}
+
+// チュートリアルのボタンイベント
+prevButton.addEventListener('click', () => {
+  if (currentTutorialStep > 0) {
+    currentTutorialStep--;
+    showTutorial();
+  }
+});
+
+nextButton.addEventListener('click', () => {
+  if (currentTutorialStep < tutorialSteps.length - 1) {
+    currentTutorialStep++;
+    showTutorial();
+  } else {
+    tutorialOverlay.style.display = 'none';
+    startStage(1);
+  }
+});
+
+// ステージの開始
+function startStage(stageNumber) {
+  currentStage = stageNumber;
+  setupStage(stageNumber);
+  drawAreas();
+  if (gameInterval) clearInterval(gameInterval);
+  gameInterval = setInterval(gameLoop, 50); // フレームレートを上げるために短く
+}
+
+// ステージの設定
+function setupStage(stageNumber) {
+  // エリア数と配置の設定
+  if (stageNumber <= 3) {
+    createAreas(5, stageNumber);
+  } else if (stageNumber <= 6) {
+    createAreas(7, stageNumber);
+  } else {
+    createAreas(10, stageNumber);
+  }
+}
 
 // エリアの作成（重ならないように配置）
 function createAreas(areaCount, stageNumber) {
@@ -29,15 +114,14 @@ function createAreas(areaCount, stageNumber) {
       const dx = area.x - newArea.x;
       const dy = area.y - newArea.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      return distance >= AREA_RADIUS * 2;
+      return distance >= AREA_RADIUS * 2 + 10; // 少し余裕を持たせる
     })) {
       areas.push(newArea);
     }
   }
 
-  // エリアが少ない場合は位置を調整
+  // エリアが少ない場合は位置を調整して追加
   if (areas.length < areaCount) {
-    // 強制的にエリア数を満たすため、位置をずらして追加
     while (areas.length < areaCount) {
       let newArea = {
         id: areas.length + 1,
@@ -51,7 +135,7 @@ function createAreas(areaCount, stageNumber) {
     }
   }
 
-  // 隣接関係の設定（デラネー三角形分割などを利用すると良いが、ここでは簡易的に）
+  // 隣接関係の設定（一定距離以内のエリアを接続）
   for (let i = 0; i < areas.length; i++) {
     for (let j = i + 1; j < areas.length; j++) {
       const dx = areas[i].x - areas[j].x;
@@ -63,11 +147,31 @@ function createAreas(areaCount, stageNumber) {
     }
   }
 
-  // 以下、初期配置の設定（以前と同じ）
-  // ...
+  // 初期配置の設定
+  const enemyAreaCount = Math.floor(areaCount * (stageNumber <= 5 ? 0.2 : 0.4));
+  const enemyInitialVirus = 5 + (stageNumber - 1) * 5;
+  const playerInitialVirus = 10;
+
+  // 敵エリアの設定
+  for (let i = 0; i < enemyAreaCount; i++) {
+    areas[i].owner = 'enemy';
+    areas[i].virusCount = enemyInitialVirus;
+  }
+
+  // プレイヤーエリアの設定
+  areas[areas.length - 1].owner = 'player';
+  areas[areas.length - 1].virusCount = playerInitialVirus;
+
+  // エリアの再配置（敵とプレイヤーを対角線上に配置）
+  if (stageNumber >= 7) {
+    areas[0].x = AREA_RADIUS + 10;
+    areas[0].y = AREA_RADIUS + 10;
+    areas[areas.length - 1].x = canvas.width - AREA_RADIUS - 10;
+    areas[areas.length - 1].y = canvas.height - AREA_RADIUS - 10;
+  }
 }
 
-// エリアの描画（攻撃ブロックの描画も追加）
+// エリアの描画
 function drawAreas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -109,6 +213,61 @@ function drawAreas() {
   });
 }
 
+// ウイルスの増殖
+function increaseVirusCounts() {
+  areas.forEach(area => {
+    if (area.owner !== 'neutral') {
+      area.virusCount += area.growthRate;
+    }
+  });
+}
+
+// エリアのクリック判定
+canvas.addEventListener('click', function(event) {
+  const rect = canvas.getBoundingClientRect();
+  const clickX = event.clientX - rect.left;
+  const clickY = event.clientY - rect.top;
+
+  const clickedArea = areas.find(area => {
+    const dx = area.x - clickX;
+    const dy = area.y - clickY;
+    return Math.sqrt(dx * dx + dy * dy) < AREA_RADIUS;
+  });
+
+  if (clickedArea) {
+    if (!selectedArea) {
+      // 自エリアを選択
+      if (clickedArea.owner === 'player' && clickedArea.virusCount > 1) {
+        selectedArea = clickedArea;
+        drawAreas();
+      }
+    } else {
+      // 移動先を選択
+      if (isNeighbor(selectedArea, clickedArea)) {
+        moveVirus(selectedArea.id, clickedArea.id);
+        selectedArea = null;
+        drawAreas();
+      } else {
+        // 隣接していない場合は選択を解除
+        selectedArea = null;
+        drawAreas();
+      }
+    }
+  } else {
+    // 何もない場所をクリックした場合、選択を解除
+    selectedArea = null;
+    drawAreas();
+  }
+});
+
+// エリア間が隣接しているか確認
+function isNeighbor(fromArea, toArea) {
+  return connections.some(conn =>
+    (conn[0] === fromArea.id && conn[1] === toArea.id) ||
+    (conn[1] === fromArea.id && conn[0] === toArea.id)
+  );
+}
+
 // ウイルスの移動（攻撃ブロックの作成に変更）
 function moveVirus(fromId, toId) {
   const fromArea = areas.find(area => area.id === fromId);
@@ -135,7 +294,7 @@ function moveVirus(fromId, toId) {
 
 // 攻撃ブロックの更新
 function updateAttackBlocks() {
-  const speed = 0.02; // 攻撃ブロックの移動速度
+  const speed = 0.01; // 攻撃ブロックの移動速度
 
   attackBlocks.forEach((block, index) => {
     block.progress += speed;
@@ -227,7 +386,21 @@ function enemyAction() {
   });
 }
 
-// ゲームループの更新
+// 勝敗の判定
+function checkGameStatus() {
+  const playerOwned = areas.filter(area => area.owner === 'player').length;
+  const enemyOwned = areas.filter(area => area.owner === 'enemy').length;
+
+  if (playerOwned === areas.length) {
+    clearInterval(gameInterval);
+    levelCompleteOverlay.style.display = 'block';
+  } else if (enemyOwned === areas.length) {
+    clearInterval(gameInterval);
+    gameOverOverlay.style.display = 'block';
+  }
+}
+
+// ゲームループ
 function gameLoop() {
   increaseVirusCounts();
   enemyAction();
@@ -236,4 +409,27 @@ function gameLoop() {
   drawAreas();
 }
 
-// 既存のコード（初期化、イベントリスナーなど）は以前と同じです
+// ステージクリア時のボタンイベント
+nextLevelButton.addEventListener('click', () => {
+  levelCompleteOverlay.style.display = 'none';
+  startStage(currentStage + 1);
+});
+
+retryLevelButton.addEventListener('click', () => {
+  levelCompleteOverlay.style.display = 'none';
+  startStage(currentStage);
+});
+
+// ゲームオーバー時のボタンイベント
+retryButton.addEventListener('click', () => {
+  gameOverOverlay.style.display = 'none';
+  startStage(currentStage);
+});
+
+restartButton.addEventListener('click', () => {
+  gameOverOverlay.style.display = 'none';
+  initGame();
+});
+
+// ゲームの開始
+initGame();
