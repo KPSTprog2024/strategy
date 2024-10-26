@@ -28,8 +28,8 @@ body {
 
 .content {
   position: relative;
-  top: 25%;
-  width: 60%;
+  top: 10%;
+  width: 80%;
   margin: 0 auto;
   text-align: center;
   color: #fff;
@@ -39,4 +39,26 @@ button {
   padding: 10px 20px;
   margin: 10px;
   font-size: 16px;
+}
+
+/* Give Up ボタンのスタイルを追加 */
+#giveUpButton {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  padding: 5px 10px;
+  font-size: 14px;
+}
+
+/* ステージ選択ボタンのスタイル */
+#stageSelection {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.stageButton {
+  width: 100px;
+  margin: 5px;
 }
