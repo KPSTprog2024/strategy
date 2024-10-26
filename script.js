@@ -16,7 +16,6 @@ const restartButton = document.getElementById('restartButton');
 
 // ゲーム状態の変数
 let currentStage = 0;
-let stages = [];
 let areas = [];
 let connections = [];
 let selectedArea = null;
@@ -37,6 +36,10 @@ let tutorialSteps = [
   'それではゲームを始めましょう！'
 ];
 let currentTutorialStep = 0;
+
+// ウイルス増殖と敵行動のタイミング管理
+let virusGrowthCounter = 0;
+let enemyActionCounter = 0;
 
 // 初期化関数
 function initGame() {
@@ -76,7 +79,9 @@ function startStage(stageNumber) {
   setupStage(stageNumber);
   drawAreas();
   if (gameInterval) clearInterval(gameInterval);
-  gameInterval = setInterval(gameLoop, 50); // フレームレートを上げるために短く
+  virusGrowthCounter = 0;
+  enemyActionCounter = 0;
+  gameInterval = setInterval(gameLoop, 50); // ゲームループを50msごとに実行
 }
 
 // ステージの設定
@@ -146,6 +151,30 @@ function createAreas(areaCount, stageNumber) {
       }
     }
   }
+
+  // すべてのエリアが少なくとも1つの接続を持つようにする
+  areas.forEach(area => {
+    const isConnected = connections.some(conn => conn.includes(area.id));
+    if (!isConnected) {
+      // 最も近い他のエリアと接続する
+      let minDistance = Infinity;
+      let closestArea = null;
+      areas.forEach(otherArea => {
+        if (area.id !== otherArea.id) {
+          const dx = area.x - otherArea.x;
+          const dy = area.y - otherArea.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestArea = otherArea;
+          }
+        }
+      });
+      if (closestArea) {
+        connections.push([area.id, closestArea.id]);
+      }
+    }
+  });
 
   // 初期配置の設定
   const enemyAreaCount = Math.floor(areaCount * (stageNumber <= 5 ? 0.2 : 0.4));
@@ -402,9 +431,20 @@ function checkGameStatus() {
 
 // ゲームループ
 function gameLoop() {
-  increaseVirusCounts();
-  enemyAction();
-  updateAttackBlocks(); // 攻撃ブロックの更新を追加
+  virusGrowthCounter += 50; // 50msごとに実行
+  enemyActionCounter += 50;
+
+  if (virusGrowthCounter >= 1000) { // 1000msごとにウイルス増殖
+    increaseVirusCounts();
+    virusGrowthCounter = 0;
+  }
+
+  if (enemyActionCounter >= 1000) { // 1000msごとに敵の行動
+    enemyAction();
+    enemyActionCounter = 0;
+  }
+
+  updateAttackBlocks(); // 攻撃ブロックの更新
   checkGameStatus();
   drawAreas();
 }
