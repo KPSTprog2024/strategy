@@ -155,7 +155,7 @@ const stages = [
   // ステージ7
   {
     areas: [
-      { id: 1, x: 100, y: 300, owner: 'player', virusCount: 10, growthRate: 2 },
+      { id: 1, x: 100, y: 300, owner: 'player', virusCount: 15, growthRate: 2 },
       { id: 2, x: 250, y: 150, owner: 'neutral', virusCount: 20, growthRate: 2 },
       { id: 3, x: 250, y: 450, owner: 'neutral', virusCount: 20, growthRate: 2 },
       { id: 4, x: 400, y: 300, owner: 'neutral', virusCount: 20, growthRate: 2 },
