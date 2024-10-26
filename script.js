@@ -4,13 +4,16 @@ const ctx = canvas.getContext('2d');
 
 // オーバーレイ要素の取得
 const startScreen = document.getElementById('startScreen');
-const startGameButton = document.getElementById('startGameButton');
+// const startGameButton = document.getElementById('startGameButton'); // 不要になったため削除
 const levelCompleteOverlay = document.getElementById('levelComplete');
 const nextLevelButton = document.getElementById('nextLevelButton');
 const retryLevelButton = document.getElementById('retryLevelButton');
 const gameOverOverlay = document.getElementById('gameOver');
 const retryButton = document.getElementById('retryButton');
 const restartButton = document.getElementById('restartButton');
+
+// ステージ選択ボタンの取得
+const stageButtons = document.querySelectorAll('.stageButton');
 
 // ゲーム状態の変数
 let currentStage = 0;
@@ -44,10 +47,13 @@ function initGame() {
   giveUpState = 'giveUp';
 }
 
-// ゲーム開始ボタンのイベント
-startGameButton.addEventListener('click', () => {
-  startScreen.style.display = 'none';
-  startStage(0); // ステージ0から開始
+// ステージ選択ボタンのイベントリスナーを追加
+stageButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    const selectedStage = parseInt(button.getAttribute('data-stage'), 10);
+    startScreen.style.display = 'none';
+    startStage(selectedStage);
+  });
 });
 
 // Give Up ボタンのイベントリスナーを追加
@@ -87,9 +93,9 @@ function startStage(stageNumber) {
 
 // ステージの設定
 function setupStage(stageNumber) {
-  if (stageNumber < stages.length) {
+  if (stageNumber <= stages.length && stageNumber > 0) {
     // 固定デザインのステージをロード
-    const stageData = stages[stageNumber];
+    const stageData = stages[stageNumber - 1]; // インデックスは0から始まるため
     areas = stageData.areas.map(area => ({ ...area }));
     connections = stageData.connections.map(conn => [...conn]);
   } else {
@@ -107,10 +113,26 @@ function createRandomStage(stageNumber) {
 
   // エリアの生成
   for (let i = 0; i < numAreas; i++) {
+    let validPosition = false;
+    let x, y;
+
+    // エリアが重ならないように位置を決定
+    while (!validPosition) {
+      x = Math.floor(Math.random() * (canvas.width - 2 * AREA_RADIUS) + AREA_RADIUS);
+      y = Math.floor(Math.random() * (canvas.height - 2 * AREA_RADIUS) + AREA_RADIUS);
+
+      validPosition = areas.every(area => {
+        const dx = area.x - x;
+        const dy = area.y - y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance > AREA_RADIUS * 2; // エリア同士が重ならない
+      });
+    }
+
     const area = {
       id: i + 1,
-      x: Math.floor(Math.random() * (canvas.width - 2 * AREA_RADIUS) + AREA_RADIUS),
-      y: Math.floor(Math.random() * (canvas.height - 2 * AREA_RADIUS) + AREA_RADIUS),
+      x: x,
+      y: y,
       owner: 'neutral',
       virusCount: Math.floor(Math.random() * 20) + 10, // 10〜30のウイルス数
       growthRate: Math.floor(Math.random() * 3) + 1,   // 1〜3の増殖率
@@ -131,22 +153,25 @@ function createRandomStage(stageNumber) {
   enemyArea.virusCount = 30 + stageNumber * 2; // ステージが進むごとに増加
   enemyArea.growthRate = 1;
 
-  // エリア間の接続をランダムに作成
-  const maxConnections = Math.min(4, numAreas - 1); // 各エリアから最大4つの接続
-  for (let i = 0; i < areas.length; i++) {
-    const area = areas[i];
-    const numConnections = Math.floor(Math.random() * maxConnections) + 1;
-    for (let j = 0; j < numConnections; j++) {
-      const targetIndex = Math.floor(Math.random() * areas.length);
-      if (targetIndex !== i) {
-        const connection = [area.id, areas[targetIndex].id];
-        // 重複する接続を防ぐ
-        if (!connections.some(conn =>
-          (conn[0] === connection[0] && conn[1] === connection[1]) ||
-          (conn[0] === connection[1] && conn[1] === connection[0])
-        )) {
-          connections.push(connection);
-        }
+  // エリア間の接続を作成（連結性を確保）
+  const shuffledAreas = [...areas].sort(() => Math.random() - 0.5);
+  for (let i = 0; i < shuffledAreas.length - 1; i++) {
+    connections.push([shuffledAreas[i].id, shuffledAreas[i + 1].id]);
+  }
+
+  // ランダムに追加の接続を作成
+  const extraConnections = Math.floor(numAreas * 1.5);
+  for (let i = 0; i < extraConnections; i++) {
+    const area1 = areas[Math.floor(Math.random() * areas.length)];
+    const area2 = areas[Math.floor(Math.random() * areas.length)];
+    if (area1.id !== area2.id) {
+      const connection = [area1.id, area2.id];
+      // 重複する接続を防ぐ
+      if (!connections.some(conn =>
+        (conn[0] === connection[0] && conn[1] === connection[1]) ||
+        (conn[0] === connection[1] && conn[1] === connection[0])
+      )) {
+        connections.push(connection);
       }
     }
   }
