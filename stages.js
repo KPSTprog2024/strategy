@@ -159,7 +159,7 @@ const stages = [
       { id: 1, x: 100, y: 100, owner: 'player', virusCount: 35, growthRate: 2 },
       { id: 2, x: 700, y: 100, owner: 'enemy', virusCount: 40, growthRate: 1 },
       { id: 3, x: 400, y: 200, owner: 'neutral', virusCount: 25, growthRate: 2 },
-      { id: 4, x: 250, y: 350, owner: 'neutral', virusCount: 25, growthRate: 2 },
+      { id: 4, x: 250, y: 350, owner: 'neutral', virusCount: 25, growthRate: 1 },
       { id: 5, x: 550, y: 350, owner: 'neutral', virusCount: 25, growthRate: 2 },
       { id: 6, x: 100, y: 500, owner: 'neutral', virusCount: 25, growthRate: 2 },
       { id: 7, x: 700, y: 500, owner: 'enemy', virusCount: 40, growthRate: 1 },
