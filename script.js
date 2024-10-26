@@ -32,6 +32,9 @@ const AREA_RADIUS = 40;
 let virusGrowthCounter = 0;
 let enemyActionCounter = 0;
 
+// 攻撃ブロックの移動速度
+const ATTACK_BLOCK_SPEED = 2.4; // 既存の速度より1.2倍
+
 // Give Up ボタンの要素と状態
 const giveUpButton = document.getElementById('giveUpButton');
 let giveUpState = 'giveUp'; // 'giveUp' または 'restart'
@@ -237,8 +240,8 @@ function drawAreas() {
       // 選択したエリア
       lineWidth = 5;
       strokeStyle = 'darkred';
-    } else if (selectedArea && isNeighbor(selectedArea, area) && area.owner !== 'player') {
-      // 隣接する敵または中立エリア
+    } else if (selectedArea && isNeighbor(selectedArea, area)) {
+      // 隣接するすべてのエリア
       lineWidth = 5;
       strokeStyle = 'darkblue';
     }
@@ -358,7 +361,7 @@ function moveVirus(fromId, toId) {
       dy: unitY,
       totalDistance: totalDistance,
       distanceTraveled: 0,
-      speed: 2, // ピクセルごとの移動速度
+      speed: ATTACK_BLOCK_SPEED, // 移動速度を変更
     });
   }
 }
@@ -520,7 +523,7 @@ function enemyAction() {
         dy: unitY,
         totalDistance: totalDistance,
         distanceTraveled: 0,
-        speed: 2, // ピクセルごとの移動速度
+        speed: ATTACK_BLOCK_SPEED, // 移動速度を変更
       });
     }
   });
