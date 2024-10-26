@@ -99,10 +99,57 @@ function setupStage(stageNumber) {
   selectedArea = null;
 }
 
-// ランダムステージの作成（省略）
+// ランダムステージの作成
 function createRandomStage(stageNumber) {
-  // ランダムにエリアと接続を生成するロジックを記述
-  // ここでは簡略化のため省略します
+  const numAreas = Math.min(15, 5 + Math.floor(stageNumber / 2)); // ステージが進むごとにエリア数を増やす（最大15）
+  areas = [];
+  connections = [];
+
+  // エリアの生成
+  for (let i = 0; i < numAreas; i++) {
+    const area = {
+      id: i + 1,
+      x: Math.floor(Math.random() * (canvas.width - 2 * AREA_RADIUS) + AREA_RADIUS),
+      y: Math.floor(Math.random() * (canvas.height - 2 * AREA_RADIUS) + AREA_RADIUS),
+      owner: 'neutral',
+      virusCount: Math.floor(Math.random() * 20) + 10, // 10〜30のウイルス数
+      growthRate: Math.floor(Math.random() * 3) + 1,   // 1〜3の増殖率
+    };
+    areas.push(area);
+  }
+
+  // エリアのオーナー設定
+  // プレイヤーのエリア
+  const playerArea = areas[0];
+  playerArea.owner = 'player';
+  playerArea.virusCount = 30 + stageNumber * 2; // ステージが進むごとに増加
+  playerArea.growthRate = 1;
+
+  // 敵のエリア
+  const enemyArea = areas[areas.length - 1];
+  enemyArea.owner = 'enemy';
+  enemyArea.virusCount = 30 + stageNumber * 2; // ステージが進むごとに増加
+  enemyArea.growthRate = 1;
+
+  // エリア間の接続をランダムに作成
+  const maxConnections = Math.min(4, numAreas - 1); // 各エリアから最大4つの接続
+  for (let i = 0; i < areas.length; i++) {
+    const area = areas[i];
+    const numConnections = Math.floor(Math.random() * maxConnections) + 1;
+    for (let j = 0; j < numConnections; j++) {
+      const targetIndex = Math.floor(Math.random() * areas.length);
+      if (targetIndex !== i) {
+        const connection = [area.id, areas[targetIndex].id];
+        // 重複する接続を防ぐ
+        if (!connections.some(conn =>
+          (conn[0] === connection[0] && conn[1] === connection[1]) ||
+          (conn[0] === connection[1] && conn[1] === connection[0])
+        )) {
+          connections.push(connection);
+        }
+      }
+    }
+  }
 }
 
 // エリアの描画
