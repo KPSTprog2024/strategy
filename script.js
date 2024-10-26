@@ -29,15 +29,41 @@ const AREA_RADIUS = 40;
 let virusGrowthCounter = 0;
 let enemyActionCounter = 0;
 
+// Give Up ボタンの要素と状態
+const giveUpButton = document.getElementById('giveUpButton');
+let giveUpState = 'giveUp'; // 'giveUp' または 'restart'
+
 // 初期化関数
 function initGame() {
   startScreen.style.display = 'block';
+  // Give Up ボタンを非表示にする
+  giveUpButton.style.display = 'none';
+  // ボタンの初期状態を設定
+  giveUpButton.textContent = 'Give Up';
+  giveUpButton.style.backgroundColor = '';
+  giveUpState = 'giveUp';
 }
 
 // ゲーム開始ボタンのイベント
 startGameButton.addEventListener('click', () => {
   startScreen.style.display = 'none';
   startStage(0); // ステージ0から開始
+});
+
+// Give Up ボタンのイベントリスナーを追加
+giveUpButton.addEventListener('click', () => {
+  if (giveUpState === 'giveUp') {
+    // ボタンを「Restart」に変更
+    giveUpButton.textContent = 'Restart';
+    giveUpButton.style.backgroundColor = '#f00';
+    giveUpState = 'restart';
+  } else if (giveUpState === 'restart') {
+    // 現在のステージを再スタート
+    giveUpButton.textContent = 'Give Up';
+    giveUpButton.style.backgroundColor = '';
+    giveUpState = 'giveUp';
+    startStage(currentStage);
+  }
 });
 
 // ステージの開始
@@ -49,6 +75,13 @@ function startStage(stageNumber) {
   virusGrowthCounter = 0;
   enemyActionCounter = 0;
   gameInterval = setInterval(gameLoop, 50); // ゲームループを50msごとに実行
+
+  // ゲーム開始時に Give Up ボタンを表示
+  giveUpButton.style.display = 'block';
+  // ボタンの初期状態を設定
+  giveUpButton.textContent = 'Give Up';
+  giveUpButton.style.backgroundColor = '';
+  giveUpState = 'giveUp';
 }
 
 // ステージの設定
