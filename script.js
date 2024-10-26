@@ -284,68 +284,78 @@ function moveVirus(fromId, toId) {
     fromArea.virusCount -= movingVirus;
 
     // 攻撃ブロックの作成
+    const dx = toArea.x - fromArea.x;
+    const dy = toArea.y - fromArea.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const unitX = dx / distance;
+    const unitY = dy / distance;
+
+    const startX = fromArea.x + AREA_RADIUS * unitX;
+    const startY = fromArea.y + AREA_RADIUS * unitY;
+    const endX = toArea.x - AREA_RADIUS * unitX;
+    const endY = toArea.y - AREA_RADIUS * unitY;
+    const totalDistance = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
+
     attackBlocks.push({
       owner: fromArea.owner,
       virusCount: movingVirus,
       fromArea: fromArea,
       toArea: toArea,
-      x: fromArea.x,
-      y: fromArea.y,
-      progress: 0
+      x: startX,
+      y: startY,
+      dx: unitX,
+      dy: unitY,
+      totalDistance: totalDistance,
+      distanceTraveled: 0,
+      speed: 2, // ピクセルごとの移動速度
     });
   }
 }
 
 // 攻撃ブロックの更新
 function updateAttackBlocks() {
-  const speed = 0.01; // 攻撃ブロックの移動速度
-
   for (let i = 0; i < attackBlocks.length; i++) {
     const block = attackBlocks[i];
-    block.progress += speed;
 
-    // 開始・終了位置をエリアの外縁に設定
-    const dx = block.toArea.x - block.fromArea.x;
-    const dy = block.toArea.y - block.fromArea.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    const unitX = dx / distance;
-    const unitY = dy / distance;
-
-    const startX = block.fromArea.x + AREA_RADIUS * unitX;
-    const startY = block.fromArea.y + AREA_RADIUS * unitY;
-    const endX = block.toArea.x - AREA_RADIUS * unitX;
-    const endY = block.toArea.y - AREA_RADIUS * unitY;
+    // 移動距離の更新
+    block.distanceTraveled += block.speed;
 
     // 座標の更新
-    block.x = startX + (endX - startX) * block.progress;
-    block.y = startY + (endY - startY) * block.progress;
+    block.x = block.x + block.dx * block.speed;
+    block.y = block.y + block.dy * block.speed;
 
     // 攻撃ブロック同士の衝突判定
     for (let j = i + 1; j < attackBlocks.length; j++) {
       const otherBlock = attackBlocks[j];
 
-      // 異なる所有者の場合のみ衝突判定
-      if (block.owner !== otherBlock.owner) {
-        const dx = block.x - otherBlock.x;
-        const dy = block.y - otherBlock.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+      // 同一経路上にある場合のみ衝突判定
+      if (
+        (block.fromArea.id === otherBlock.fromArea.id && block.toArea.id === otherBlock.toArea.id) ||
+        (block.fromArea.id === otherBlock.toArea.id && block.toArea.id === otherBlock.fromArea.id)
+      ) {
+        // 異なる所有者の場合のみ衝突判定
+        if (block.owner !== otherBlock.owner) {
+          const dx = block.x - otherBlock.x;
+          const dy = block.y - otherBlock.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < 20) { // 攻撃ブロックの半径の合計より小さい場合
-          if (block.virusCount > otherBlock.virusCount) {
-            block.virusCount -= otherBlock.virusCount;
-            attackBlocks.splice(j, 1);
-            j--; // インデックスを調整
-          } else if (block.virusCount < otherBlock.virusCount) {
-            otherBlock.virusCount -= block.virusCount;
-            attackBlocks.splice(i, 1);
-            i--; // インデックスを調整
-            break; // 外側のループを抜ける
-          } else {
-            // 同数の場合、両方消える
-            attackBlocks.splice(j, 1);
-            attackBlocks.splice(i, 1);
-            i--; // インデックスを調整
-            break; // 外側のループを抜ける
+          if (distance < 20) { // 攻撃ブロックの半径の合計より小さい場合
+            if (block.virusCount > otherBlock.virusCount) {
+              block.virusCount -= otherBlock.virusCount;
+              attackBlocks.splice(j, 1);
+              j--; // インデックスを調整
+            } else if (block.virusCount < otherBlock.virusCount) {
+              otherBlock.virusCount -= block.virusCount;
+              attackBlocks.splice(i, 1);
+              i--; // インデックスを調整
+              break; // 外側のループを抜ける
+            } else {
+              // 同数の場合、両方消える
+              attackBlocks.splice(j, 1);
+              attackBlocks.splice(i, 1);
+              i--; // インデックスを調整
+              break; // 外側のループを抜ける
+            }
           }
         }
       }
@@ -353,7 +363,7 @@ function updateAttackBlocks() {
 
     // 攻撃ブロックがターゲットエリアの外縁に到達したか確認
     const targetDistance = Math.sqrt((block.x - block.toArea.x) ** 2 + (block.y - block.toArea.y) ** 2);
-    if (targetDistance <= AREA_RADIUS) {
+    if (targetDistance <= AREA_RADIUS || block.distanceTraveled >= block.totalDistance) {
       // 攻撃ブロックが到達した場合の処理
       const toArea = block.toArea;
       const movingVirus = block.virusCount;
@@ -424,14 +434,30 @@ function enemyAction() {
       area.virusCount -= movingVirus;
 
       // 攻撃ブロックの作成
+      const dx = targetArea.x - area.x;
+      const dy = targetArea.y - area.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const unitX = dx / distance;
+      const unitY = dy / distance;
+
+      const startX = area.x + AREA_RADIUS * unitX;
+      const startY = area.y + AREA_RADIUS * unitY;
+      const endX = targetArea.x - AREA_RADIUS * unitX;
+      const endY = targetArea.y - AREA_RADIUS * unitY;
+      const totalDistance = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
+
       attackBlocks.push({
         owner: area.owner,
         virusCount: movingVirus,
         fromArea: area,
         toArea: targetArea,
-        x: area.x,
-        y: area.y,
-        progress: 0
+        x: startX,
+        y: startY,
+        dx: unitX,
+        dy: unitY,
+        totalDistance: totalDistance,
+        distanceTraveled: 0,
+        speed: 2, // ピクセルごとの移動速度
       });
     }
   });
@@ -444,9 +470,11 @@ function checkGameStatus() {
 
   if (playerOwned === areas.length) {
     clearInterval(gameInterval);
+    attackBlocks = []; // 攻撃ブロックをクリア
     levelCompleteOverlay.style.display = 'block';
   } else if (enemyOwned === areas.length) {
     clearInterval(gameInterval);
+    attackBlocks = []; // 攻撃ブロックをクリア
     gameOverOverlay.style.display = 'block';
   }
 }
