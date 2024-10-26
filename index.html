@@ -6,51 +6,54 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="gameContainer">
-    <!-- Give Up ボタンを追加 -->
-    <button id="giveUpButton">Give Up</button>
+  <div id="mainContainer">
+    <div id="gameContainer">
+      <canvas id="gameCanvas" width="800" height="600"></canvas>
 
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+      <!-- スタート画面 -->
+      <div id="startScreen" class="overlay">
+        <div class="content">
+          <h2>インフェクションゲームへようこそ！</h2>
+          <p>ステージを選択してください：</p>
+          <div id="stageSelection">
+            <!-- ステージ選択ボタンを追加 -->
+            <button class="stageButton" data-stage="1">ステージ 1</button>
+            <button class="stageButton" data-stage="2">ステージ 2</button>
+            <button class="stageButton" data-stage="3">ステージ 3</button>
+            <button class="stageButton" data-stage="4">ステージ 4</button>
+            <button class="stageButton" data-stage="5">ステージ 5</button>
+            <button class="stageButton" data-stage="6">ステージ 6</button>
+            <button class="stageButton" data-stage="7">ステージ 7</button>
+            <button class="stageButton" data-stage="8">ステージ 8</button>
+            <button class="stageButton" data-stage="9">ステージ 9</button>
+            <button class="stageButton" data-stage="10">ステージ 10</button>
+          </div>
+        </div>
+      </div>
 
-    <!-- スタート画面 -->
-    <div id="startScreen" class="overlay">
-      <div class="content">
-        <h2>インフェクションゲームへようこそ！</h2>
-        <p>ステージを選択してください：</p>
-        <div id="stageSelection">
-          <!-- ステージ選択ボタンを追加 -->
-          <button class="stageButton" data-stage="1">ステージ 1</button>
-          <button class="stageButton" data-stage="2">ステージ 2</button>
-          <button class="stageButton" data-stage="3">ステージ 3</button>
-          <button class="stageButton" data-stage="4">ステージ 4</button>
-          <button class="stageButton" data-stage="5">ステージ 5</button>
-          <button class="stageButton" data-stage="6">ステージ 6</button>
-          <button class="stageButton" data-stage="7">ステージ 7</button>
-          <button class="stageButton" data-stage="8">ステージ 8</button>
-          <button class="stageButton" data-stage="9">ステージ 9</button>
-          <button class="stageButton" data-stage="10">ステージ 10</button>
+      <!-- ステージクリア画面 -->
+      <div id="levelComplete" class="overlay">
+        <div class="content">
+          <h2>ステージクリア！</h2>
+          <button id="retryLevelButton">もう一回同じレベル</button>
+          <button id="nextLevelButton">次のレベル</button>
+        </div>
+      </div>
+
+      <!-- ゲームオーバー画面 -->
+      <div id="gameOver" class="overlay">
+        <div class="content">
+          <h2>ゲームオーバー</h2>
+          <button id="restartButton">最初に戻る</button>
+          <button id="retryButton">もう一回同じレベル</button>
         </div>
       </div>
     </div>
 
-    <!-- ステージクリア画面 -->
-    <div id="levelComplete" class="overlay">
-      <div class="content">
-        <h2>ステージクリア！</h2>
-        <button id="retryLevelButton">もう一回同じレベル</button>
-        <button id="nextLevelButton">次のレベル</button>
-      </div>
-    </div>
-
-    <!-- ゲームオーバー画面 -->
-    <div id="gameOver" class="overlay">
-      <div class="content">
-        <h2>ゲームオーバー</h2>
-        <button id="restartButton">最初に戻る</button>
-        <button id="retryButton">もう一回同じレベル</button>
-      </div>
-    </div>
+    <!-- Give Up ボタンをキャンバス外に配置 -->
+    <button id="giveUpButton">Give Up</button>
   </div>
+
   <script src="stages.js"></script>
   <script src="script.js"></script>
 </body>
