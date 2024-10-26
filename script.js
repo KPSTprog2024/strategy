@@ -69,6 +69,7 @@ giveUpButton.addEventListener('click', () => {
 // ステージの開始
 function startStage(stageNumber) {
   currentStage = stageNumber;
+  attackBlocks = []; // 攻撃ブロックをクリア
   setupStage(stageNumber);
   drawAreas();
   if (gameInterval) clearInterval(gameInterval);
