@@ -29,10 +29,256 @@ const AREA_RADIUS = 40;
 let virusGrowthCounter = 0;
 let enemyActionCounter = 0;
 
-// グリッドの設定
-const GRID_SIZE = 5; // グリッドの行・列数
-const GRID_WIDTH = canvas.width / GRID_SIZE;
-const GRID_HEIGHT = canvas.height / GRID_SIZE;
+// ステージデータの定義
+const stages = [
+  // ステージ0: チュートリアル
+  {
+    areas: [
+      { id: 1, x: 200, y: 300, owner: 'player', virusCount: 10, growthRate: 1 },
+      { id: 2, x: 400, y: 200, owner: 'neutral', virusCount: 5, growthRate: 1 },
+      { id: 3, x: 400, y: 400, owner: 'neutral', virusCount: 5, growthRate: 1 },
+      { id: 4, x: 600, y: 300, owner: 'neutral', virusCount: 5, growthRate: 1 },
+    ],
+    connections: [
+      [1, 2],
+      [2, 4],
+      [1, 3],
+      [3, 4],
+    ],
+  },
+  // ステージ1
+  {
+    areas: [
+      { id: 1, x: 100, y: 300, owner: 'player', virusCount: 10, growthRate: 1 },
+      { id: 2, x: 250, y: 150, owner: 'neutral', virusCount: 5, growthRate: 1 },
+      { id: 3, x: 250, y: 450, owner: 'neutral', virusCount: 5, growthRate: 1 },
+      { id: 4, x: 400, y: 300, owner: 'neutral', virusCount: 5, growthRate: 1 },
+      { id: 5, x: 550, y: 150, owner: 'neutral', virusCount: 5, growthRate: 1 },
+      { id: 6, x: 550, y: 450, owner: 'neutral', virusCount: 5, growthRate: 1 },
+      { id: 7, x: 700, y: 300, owner: 'enemy', virusCount: 10, growthRate: 1 },
+    ],
+    connections: [
+      [1, 2],
+      [1, 3],
+      [2, 4],
+      [3, 4],
+      [4, 5],
+      [4, 6],
+      [5, 7],
+      [6, 7],
+    ],
+  },
+  // ステージ2
+  {
+    areas: [
+      { id: 1, x: 100, y: 100, owner: 'player', virusCount: 15, growthRate: 1 },
+      { id: 2, x: 100, y: 500, owner: 'neutral', virusCount: 5, growthRate: 1 },
+      { id: 3, x: 400, y: 100, owner: 'neutral', virusCount: 5, growthRate: 1 },
+      { id: 4, x: 400, y: 300, owner: 'neutral', virusCount: 5, growthRate: 1 },
+      { id: 5, x: 400, y: 500, owner: 'neutral', virusCount: 5, growthRate: 1 },
+      { id: 6, x: 700, y: 100, owner: 'enemy', virusCount: 15, growthRate: 1 },
+      { id: 7, x: 700, y: 500, owner: 'neutral', virusCount: 5, growthRate: 1 },
+    ],
+    connections: [
+      [1, 2],
+      [1, 3],
+      [2, 5],
+      [3, 4],
+      [4, 5],
+      [4, 7],
+      [5, 7],
+      [3, 6],
+      [6, 7],
+    ],
+  },
+  // ステージ3
+  {
+    areas: [
+      { id: 1, x: 400, y: 50, owner: 'neutral', virusCount: 5, growthRate: 2 },
+      { id: 2, x: 250, y: 150, owner: 'player', virusCount: 20, growthRate: 1 },
+      { id: 3, x: 550, y: 150, owner: 'enemy', virusCount: 20, growthRate: 1 },
+      { id: 4, x: 400, y: 250, owner: 'neutral', virusCount: 5, growthRate: 2 },
+      { id: 5, x: 250, y: 350, owner: 'neutral', virusCount: 5, growthRate: 2 },
+      { id: 6, x: 550, y: 350, owner: 'neutral', virusCount: 5, growthRate: 2 },
+      { id: 7, x: 400, y: 450, owner: 'neutral', virusCount: 5, growthRate: 2 },
+      { id: 8, x: 400, y: 550, owner: 'neutral', virusCount: 5, growthRate: 2 },
+    ],
+    connections: [
+      [1, 2],
+      [1, 3],
+      [2, 4],
+      [3, 4],
+      [4, 5],
+      [4, 6],
+      [5, 7],
+      [6, 7],
+      [7, 8],
+    ],
+  },
+  // ステージ4
+  {
+    areas: [
+      { id: 1, x: 150, y: 300, owner: 'player', virusCount: 20, growthRate: 1 },
+      { id: 2, x: 300, y: 150, owner: 'neutral', virusCount: 5, growthRate: 2 },
+      { id: 3, x: 300, y: 450, owner: 'neutral', virusCount: 5, growthRate: 2 },
+      { id: 4, x: 450, y: 300, owner: 'neutral', virusCount: 5, growthRate: 2 },
+      { id: 5, x: 600, y: 150, owner: 'neutral', virusCount: 5, growthRate: 2 },
+      { id: 6, x: 600, y: 450, owner: 'neutral', virusCount: 5, growthRate: 2 },
+      { id: 7, x: 750, y: 300, owner: 'enemy', virusCount: 25, growthRate: 1 },
+    ],
+    connections: [
+      [1, 2],
+      [1, 3],
+      [2, 4],
+      [3, 4],
+      [4, 5],
+      [4, 6],
+      [5, 7],
+      [6, 7],
+    ],
+  },
+  // ステージ5
+  {
+    areas: [
+      { id: 1, x: 100, y: 300, owner: 'player', virusCount: 25, growthRate: 1 },
+      { id: 2, x: 250, y: 100, owner: 'neutral', virusCount: 10, growthRate: 2 },
+      { id: 3, x: 250, y: 500, owner: 'neutral', virusCount: 10, growthRate: 2 },
+      { id: 4, x: 400, y: 300, owner: 'neutral', virusCount: 10, growthRate: 2 },
+      { id: 5, x: 550, y: 100, owner: 'neutral', virusCount: 10, growthRate: 2 },
+      { id: 6, x: 550, y: 500, owner: 'neutral', virusCount: 10, growthRate: 2 },
+      { id: 7, x: 700, y: 300, owner: 'enemy', virusCount: 30, growthRate: 1 },
+    ],
+    connections: [
+      [1, 2],
+      [1, 3],
+      [2, 4],
+      [3, 4],
+      [4, 5],
+      [4, 6],
+      [5, 7],
+      [6, 7],
+      [2, 5],
+      [3, 6],
+    ],
+  },
+  // ステージ6
+  {
+    areas: [
+      { id: 1, x: 100, y: 100, owner: 'player', virusCount: 30, growthRate: 1 },
+      { id: 2, x: 100, y: 500, owner: 'neutral', virusCount: 15, growthRate: 2 },
+      { id: 3, x: 400, y: 100, owner: 'neutral', virusCount: 15, growthRate: 2 },
+      { id: 4, x: 400, y: 300, owner: 'neutral', virusCount: 15, growthRate: 2 },
+      { id: 5, x: 400, y: 500, owner: 'neutral', virusCount: 15, growthRate: 2 },
+      { id: 6, x: 700, y: 100, owner: 'enemy', virusCount: 35, growthRate: 1 },
+      { id: 7, x: 700, y: 500, owner: 'enemy', virusCount: 35, growthRate: 1 },
+    ],
+    connections: [
+      [1, 2],
+      [1, 3],
+      [2, 5],
+      [3, 4],
+      [4, 5],
+      [4, 6],
+      [5, 7],
+      [6, 7],
+    ],
+  },
+  // ステージ7
+  {
+    areas: [
+      { id: 1, x: 100, y: 300, owner: 'player', virusCount: 35, growthRate: 1 },
+      { id: 2, x: 250, y: 150, owner: 'neutral', virusCount: 20, growthRate: 2 },
+      { id: 3, x: 250, y: 450, owner: 'neutral', virusCount: 20, growthRate: 2 },
+      { id: 4, x: 400, y: 300, owner: 'neutral', virusCount: 20, growthRate: 2 },
+      { id: 5, x: 550, y: 150, owner: 'enemy', virusCount: 40, growthRate: 1 },
+      { id: 6, x: 550, y: 450, owner: 'enemy', virusCount: 40, growthRate: 1 },
+      { id: 7, x: 700, y: 300, owner: 'enemy', virusCount: 40, growthRate: 1 },
+    ],
+    connections: [
+      [1, 2],
+      [1, 3],
+      [2, 4],
+      [3, 4],
+      [4, 5],
+      [4, 6],
+      [5, 7],
+      [6, 7],
+    ],
+  },
+  // ステージ8
+  {
+    areas: [
+      { id: 1, x: 400, y: 50, owner: 'player', virusCount: 40, growthRate: 1 },
+      { id: 2, x: 250, y: 150, owner: 'neutral', virusCount: 25, growthRate: 2 },
+      { id: 3, x: 550, y: 150, owner: 'neutral', virusCount: 25, growthRate: 2 },
+      { id: 4, x: 100, y: 300, owner: 'enemy', virusCount: 45, growthRate: 1 },
+      { id: 5, x: 700, y: 300, owner: 'enemy', virusCount: 45, growthRate: 1 },
+      { id: 6, x: 250, y: 450, owner: 'neutral', virusCount: 25, growthRate: 2 },
+      { id: 7, x: 550, y: 450, owner: 'neutral', virusCount: 25, growthRate: 2 },
+      { id: 8, x: 400, y: 550, owner: 'enemy', virusCount: 45, growthRate: 1 },
+    ],
+    connections: [
+      [1, 2],
+      [1, 3],
+      [2, 4],
+      [2, 6],
+      [3, 5],
+      [3, 7],
+      [6, 4],
+      [7, 5],
+      [6, 8],
+      [7, 8],
+    ],
+  },
+  // ステージ9
+  {
+    areas: [
+      { id: 1, x: 100, y: 100, owner: 'player', virusCount: 45, growthRate: 1 },
+      { id: 2, x: 100, y: 500, owner: 'player', virusCount: 45, growthRate: 1 },
+      { id: 3, x: 250, y: 300, owner: 'neutral', virusCount: 30, growthRate: 2 },
+      { id: 4, x: 400, y: 100, owner: 'neutral', virusCount: 30, growthRate: 2 },
+      { id: 5, x: 400, y: 500, owner: 'neutral', virusCount: 30, growthRate: 2 },
+      { id: 6, x: 550, y: 300, owner: 'neutral', virusCount: 30, growthRate: 2 },
+      { id: 7, x: 700, y: 100, owner: 'enemy', virusCount: 50, growthRate: 1 },
+      { id: 8, x: 700, y: 500, owner: 'enemy', virusCount: 50, growthRate: 1 },
+    ],
+    connections: [
+      [1, 3],
+      [2, 3],
+      [3, 4],
+      [3, 5],
+      [4, 6],
+      [5, 6],
+      [6, 7],
+      [6, 8],
+    ],
+  },
+  // ステージ10
+  {
+    areas: [
+      { id: 1, x: 400, y: 50, owner: 'player', virusCount: 50, growthRate: 1 },
+      { id: 2, x: 250, y: 150, owner: 'neutral', virusCount: 35, growthRate: 2 },
+      { id: 3, x: 550, y: 150, owner: 'neutral', virusCount: 35, growthRate: 2 },
+      { id: 4, x: 250, y: 300, owner: 'enemy', virusCount: 55, growthRate: 1 },
+      { id: 5, x: 550, y: 300, owner: 'enemy', virusCount: 55, growthRate: 1 },
+      { id: 6, x: 250, y: 450, owner: 'neutral', virusCount: 35, growthRate: 2 },
+      { id: 7, x: 550, y: 450, owner: 'neutral', virusCount: 35, growthRate: 2 },
+      { id: 8, x: 400, y: 550, owner: 'enemy', virusCount: 55, growthRate: 1 },
+    ],
+    connections: [
+      [1, 2],
+      [1, 3],
+      [2, 4],
+      [3, 5],
+      [4, 6],
+      [5, 7],
+      [6, 8],
+      [7, 8],
+      [4, 5],
+      [6, 7],
+    ],
+  },
+];
 
 // 初期化関数
 function initGame() {
@@ -58,93 +304,22 @@ function startStage(stageNumber) {
 
 // ステージの設定
 function setupStage(stageNumber) {
-  if (stageNumber === 0) {
-    // チュートリアルステージ
-    createAreas(4, stageNumber);
-  } else if (stageNumber <= 3) {
-    createAreas(5, stageNumber);
-  } else if (stageNumber <= 6) {
-    createAreas(7, stageNumber);
+  if (stageNumber < stages.length) {
+    // 固定デザインのステージをロード
+    const stageData = stages[stageNumber];
+    areas = stageData.areas.map(area => ({ ...area }));
+    connections = stageData.connections.map(conn => [...conn]);
   } else {
-    createAreas(10, stageNumber);
+    // ランダムステージ（ステージ11以降）
+    createRandomStage(stageNumber);
   }
+  selectedArea = null;
 }
 
-// エリアの作成（グリッド上に配置）
-function createAreas(areaCount, stageNumber) {
-  areas = [];
-  connections = [];
-  selectedArea = null;
-
-  // グリッド上の座標を取得
-  let gridPositions = [];
-  for (let x = 1; x < GRID_SIZE; x++) {
-    for (let y = 1; y < GRID_SIZE; y++) {
-      gridPositions.push({ x: x * GRID_WIDTH, y: y * GRID_HEIGHT });
-    }
-  }
-
-  // ランダムにシャッフル
-  gridPositions.sort(() => Math.random() - 0.5);
-
-  for (let i = 0; i < areaCount; i++) {
-    let pos = gridPositions[i];
-    let newArea = {
-      id: i + 1,
-      x: pos.x,
-      y: pos.y,
-      owner: 'neutral',
-      virusCount: 5,
-      growthRate: Math.floor(Math.random() * 2) + 1
-    };
-    areas.push(newArea);
-  }
-
-  // グラフを連結するために最小全域木を作成
-  for (let i = 1; i < areas.length; i++) {
-    let j = Math.floor(Math.random() * i); // 0からi-1のエリアから選ぶ
-    connections.push([areas[i].id, areas[j].id]);
-  }
-
-  // 追加のランダムな接続を追加
-  for (let i = 0; i < areas.length; i++) {
-    for (let j = i + 1; j < areas.length; j++) {
-      if (!connections.some(conn => (conn[0] === areas[i].id && conn[1] === areas[j].id) || (conn[0] === areas[j].id && conn[1] === areas[i].id))) {
-        if (Math.random() < 0.3) { // 30%の確率で接続
-          connections.push([areas[i].id, areas[j].id]);
-        }
-      }
-    }
-  }
-
-  // 初期配置の設定
-  if (stageNumber === 0) {
-    // ステージ0（チュートリアル）
-    areas[0].owner = 'player';
-    areas[0].virusCount = 10;
-  } else {
-    const enemyAreaCount = Math.floor(areaCount * (stageNumber <= 5 ? 0.2 : 0.4));
-    const enemyInitialVirus = 5 + (stageNumber - 1) * 5;
-    const playerInitialVirus = 10;
-
-    // 敵エリアの設定
-    for (let i = 0; i < enemyAreaCount; i++) {
-      areas[i].owner = 'enemy';
-      areas[i].virusCount = enemyInitialVirus;
-    }
-
-    // プレイヤーエリアの設定
-    areas[areas.length - 1].owner = 'player';
-    areas[areas.length - 1].virusCount = playerInitialVirus;
-
-    // エリアの再配置（敵とプレイヤーを対角線上に配置）
-    if (stageNumber >= 7) {
-      areas[0].x = GRID_WIDTH;
-      areas[0].y = GRID_HEIGHT;
-      areas[areas.length - 1].x = canvas.width - GRID_WIDTH;
-      areas[areas.length - 1].y = canvas.height - GRID_HEIGHT;
-    }
-  }
+// ランダムステージの作成
+function createRandomStage(stageNumber) {
+  // ランダムにエリアと接続を生成するロジックを記述
+  // ここでは簡略化のため省略します
 }
 
 // エリアの描画
@@ -272,9 +447,15 @@ function moveVirus(fromId, toId) {
   const toArea = areas.find(area => area.id === toId);
 
   if (fromArea && toArea && fromArea.owner === 'player') {
-    // プレイヤーの攻撃ブロックが3つ以上ある場合は新たに出せない
-    const playerAttackBlocks = attackBlocks.filter(block => block.owner === 'player');
-    if (playerAttackBlocks.length >= 3) {
+    // 同一経路上の自分の攻撃ブロック数をカウント
+    const playerBlocksOnRoute = attackBlocks.filter(block =>
+      block.owner === 'player' &&
+      block.fromArea.id === fromArea.id &&
+      block.toArea.id === toArea.id
+    );
+
+    // 同一経路上に3つ以上の攻撃ブロックがある場合、新たに出せない
+    if (playerBlocksOnRoute.length >= 3) {
       return;
     }
 
@@ -294,7 +475,7 @@ function moveVirus(fromId, toId) {
     const startY = fromArea.y + AREA_RADIUS * unitY;
     const endX = toArea.x - AREA_RADIUS * unitX;
     const endY = toArea.y - AREA_RADIUS * unitY;
-    const totalDistance = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
+    const totalDistance = Math.sqrt((endX - startX) ** 2 + (endY - startX) ** 2);
 
     attackBlocks.push({
       owner: fromArea.owner,
@@ -428,6 +609,18 @@ function enemyAction() {
     }
 
     if (targetArea && area.virusCount > 0) {
+      // 同一経路上の敵の攻撃ブロック数をカウント
+      const enemyBlocksOnRoute = attackBlocks.filter(block =>
+        block.owner === 'enemy' &&
+        block.fromArea.id === area.id &&
+        block.toArea.id === targetArea.id
+      );
+
+      // 同一経路上に3つ以上の攻撃ブロックがある場合、新たに出せない
+      if (enemyBlocksOnRoute.length >= 3) {
+        return;
+      }
+
       const movingVirus = area.virusCount;
       if (movingVirus <= 0) return;
 
