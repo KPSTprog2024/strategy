@@ -33,7 +33,7 @@ let virusGrowthCounter = 0;
 let enemyActionCounter = 0;
 
 // 攻撃ブロックの移動速度
-const ATTACK_BLOCK_SPEED = 2.4; // 既存の速度より1.2倍
+const ATTACK_BLOCK_SPEED = 2; // 既存の速度より1.2倍
 
 // Give Up ボタンの要素と状態
 const giveUpButton = document.getElementById('giveUpButton');
