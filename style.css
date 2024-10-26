@@ -40,8 +40,3 @@ button {
   margin: 10px;
   font-size: 16px;
 }
-
-/* 攻撃ブロックのスタイル */
-.attack-block {
-  fill: purple;
-}
