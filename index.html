@@ -8,14 +8,16 @@
 <body>
   <div id="gameContainer">
     <canvas id="gameCanvas" width="800" height="600"></canvas>
-    <div id="tutorial" class="overlay">
+
+    <!-- スタート画面 -->
+    <div id="startScreen" class="overlay">
       <div class="content">
-        <h2>チュートリアル</h2>
-        <p id="tutorialText"></p>
-        <button id="prevButton">戻る</button>
-        <button id="nextButton">次へ</button>
+        <h2>インフェクションゲームへようこそ！</h2>
+        <button id="startGameButton">ゲーム開始</button>
       </div>
     </div>
+
+    <!-- ステージクリア画面 -->
     <div id="levelComplete" class="overlay">
       <div class="content">
         <h2>ステージクリア！</h2>
@@ -23,6 +25,8 @@
         <button id="retryLevelButton">もう一回同じレベル</button>
       </div>
     </div>
+
+    <!-- ゲームオーバー画面 -->
     <div id="gameOver" class="overlay">
       <div class="content">
         <h2>ゲームオーバー</h2>
