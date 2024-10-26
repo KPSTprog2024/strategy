@@ -140,41 +140,25 @@ function createAreas(areaCount, stageNumber) {
     }
   }
 
-  // 隣接関係の設定（一定距離以内のエリアを接続）
+  // グラフを連結するために最小全域木を作成
+  for (let i = 1; i < areas.length; i++) {
+    let j = Math.floor(Math.random() * i); // 0からi-1のエリアから選ぶ
+    connections.push([areas[i].id, areas[j].id]);
+  }
+
+  // 追加のランダムな接続を追加
   for (let i = 0; i < areas.length; i++) {
     for (let j = i + 1; j < areas.length; j++) {
-      const dx = areas[i].x - areas[j].x;
-      const dy = areas[i].y - areas[j].y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      if (distance < 200) { // 一定距離以内なら接続
-        connections.push([areas[i].id, areas[j].id]);
+      if (!connections.some(conn => (conn[0] === areas[i].id && conn[1] === areas[j].id) || (conn[0] === areas[j].id && conn[1] === areas[i].id))) {
+        const dx = areas[i].x - areas[j].x;
+        const dy = areas[i].y - areas[j].y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < 200 && Math.random() < 0.3) { // 30%の確率で接続
+          connections.push([areas[i].id, areas[j].id]);
+        }
       }
     }
   }
-
-  // すべてのエリアが少なくとも1つの接続を持つようにする
-  areas.forEach(area => {
-    const isConnected = connections.some(conn => conn.includes(area.id));
-    if (!isConnected) {
-      // 最も近い他のエリアと接続する
-      let minDistance = Infinity;
-      let closestArea = null;
-      areas.forEach(otherArea => {
-        if (area.id !== otherArea.id) {
-          const dx = area.x - otherArea.x;
-          const dy = area.y - otherArea.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < minDistance) {
-            minDistance = distance;
-            closestArea = otherArea;
-          }
-        }
-      });
-      if (closestArea) {
-        connections.push([area.id, closestArea.id]);
-      }
-    }
-  });
 
   // 初期配置の設定
   const enemyAreaCount = Math.floor(areaCount * (stageNumber <= 5 ? 0.2 : 0.4));
@@ -221,6 +205,11 @@ function drawAreas() {
     ctx.arc(block.x, block.y, 10, 0, Math.PI * 2);
     ctx.fillStyle = block.owner === 'player' ? 'red' : 'orange';
     ctx.fill();
+    ctx.fillStyle = 'white';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(block.virusCount, block.x, block.y);
   });
 
   // エリアを描画
@@ -237,8 +226,9 @@ function drawAreas() {
     // ウイルス数と増殖率を表示
     ctx.fillStyle = 'black';
     ctx.font = '16px Arial';
-    ctx.fillText(area.virusCount, area.x - 10, area.y + 5);
-    ctx.fillText(`×${area.growthRate}`, area.x - 15, area.y + 25);
+    ctx.textAlign = 'center';
+    ctx.fillText(area.virusCount, area.x, area.y + 5);
+    ctx.fillText(`×${area.growthRate}`, area.x, area.y + 25);
   });
 }
 
@@ -303,6 +293,12 @@ function moveVirus(fromId, toId) {
   const toArea = areas.find(area => area.id === toId);
 
   if (fromArea && toArea && fromArea.owner === 'player') {
+    // プレイヤーの攻撃ブロックが3つ以上ある場合は新たに出せない
+    const playerAttackBlocks = attackBlocks.filter(block => block.owner === 'player');
+    if (playerAttackBlocks.length >= 3) {
+      return;
+    }
+
     const movingVirus = Math.floor(fromArea.virusCount / 2);
     if (movingVirus <= 0) return;
 
