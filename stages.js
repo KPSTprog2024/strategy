@@ -1,6 +1,6 @@
 // ステージデータの定義
 const stages = [
-  // ステージ0: チュートリアル（既存のまま）
+  // ステージ1: チュートリアル（既存のまま）
   {
     areas: [
       { id: 1, x: 200, y: 300, owner: 'player', virusCount: 10, growthRate: 1 },
@@ -15,9 +15,7 @@ const stages = [
       [3, 4],
     ],
   },
-  // ステージ1〜4（既存のまま）
-  // ...（ステージ1〜4の定義はそのまま）
-  // ステージ1
+  // ステージ2
   {
     areas: [
       { id: 1, x: 100, y: 300, owner: 'player', virusCount: 10, growthRate: 1 },
@@ -39,7 +37,7 @@ const stages = [
       [6, 7],
     ],
   },
-  // ステージ2
+  // ステージ3
   {
     areas: [
       { id: 1, x: 100, y: 100, owner: 'player', virusCount: 15, growthRate: 1 },
@@ -62,7 +60,7 @@ const stages = [
       [6, 7],
     ],
   },
-  // ステージ3
+  // ステージ4
   {
     areas: [
       { id: 1, x: 400, y: 50, owner: 'neutral', virusCount: 5, growthRate: 2 },
@@ -86,7 +84,7 @@ const stages = [
       [7, 8],
     ],
   },
-  // ステージ4
+  // ステージ5
   {
     areas: [
       { id: 1, x: 150, y: 300, owner: 'player', virusCount: 20, growthRate: 1 },
@@ -106,32 +104,6 @@ const stages = [
       [4, 6],
       [5, 7],
       [6, 7],
-    ],
-  },
-  // ステージ5
-  {
-    areas: [
-      { id: 1, x: 100, y: 100, owner: 'player', virusCount: 25, growthRate: 2 },
-      { id: 2, x: 100, y: 500, owner: 'neutral', virusCount: 15, growthRate: 2 },
-      { id: 3, x: 400, y: 100, owner: 'neutral', virusCount: 15, growthRate: 2 },
-      { id: 4, x: 250, y: 300, owner: 'neutral', virusCount: 15, growthRate: 2 },
-      { id: 5, x: 550, y: 300, owner: 'neutral', virusCount: 15, growthRate: 2 },
-      { id: 6, x: 400, y: 500, owner: 'neutral', virusCount: 15, growthRate: 2 },
-      { id: 7, x: 700, y: 100, owner: 'enemy', virusCount: 20, growthRate: 1 },
-      { id: 8, x: 700, y: 500, owner: 'enemy', virusCount: 20, growthRate: 1 },
-    ],
-    connections: [
-      [1, 3],
-      [1, 4],
-      [2, 4],
-      [2, 6],
-      [3, 5],
-      [4, 5],
-      [5, 7],
-      [6, 5],
-      [6, 8],
-      [7, 5],
-      [8, 6],
     ],
   },
   // ステージ6
@@ -239,4 +211,31 @@ const stages = [
       [3, 6],
     ],
   },
+  // ステージ11
+  {
+    areas: [
+      { id: 1, x: 100, y: 100, owner: 'player', virusCount: 25, growthRate: 2 },
+      { id: 2, x: 100, y: 500, owner: 'neutral', virusCount: 15, growthRate: 2 },
+      { id: 3, x: 400, y: 100, owner: 'neutral', virusCount: 15, growthRate: 2 },
+      { id: 4, x: 250, y: 300, owner: 'neutral', virusCount: 15, growthRate: 2 },
+      { id: 5, x: 550, y: 300, owner: 'neutral', virusCount: 15, growthRate: 2 },
+      { id: 6, x: 400, y: 500, owner: 'neutral', virusCount: 15, growthRate: 2 },
+      { id: 7, x: 700, y: 100, owner: 'enemy', virusCount: 20, growthRate: 1 },
+      { id: 8, x: 700, y: 500, owner: 'enemy', virusCount: 20, growthRate: 1 },
+    ],
+    connections: [
+      [1, 3],
+      [1, 4],
+      [2, 4],
+      [2, 6],
+      [3, 5],
+      [4, 5],
+      [5, 7],
+      [6, 5],
+      [6, 8],
+      [7, 5],
+      [8, 6],
+    ],
+  },
+
 ];
