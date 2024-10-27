@@ -33,7 +33,10 @@ let virusGrowthCounter = 0;
 let enemyActionCounter = 0;
 
 // 攻撃ブロックの移動速度
-const ATTACK_BLOCK_SPEED = 2; // 既存の速度より1.2倍
+const ATTACK_BLOCK_SPEED = 2; // 移動速度
+
+// ウイルス数の上限
+const MAX_VIRUS_COUNT = 40;
 
 // Give Up ボタンの要素と状態
 const giveUpButton = document.getElementById('giveUpButton');
@@ -192,6 +195,7 @@ function createRandomStage(stageNumber) {
     }
   }
 }
+
 // エリアの描画
 function drawAreas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -271,11 +275,15 @@ function drawAreas() {
   });
 }
 
-// ウイルスの増殖
+// ウイルスの増殖（上限を設定）
 function increaseVirusCounts() {
   areas.forEach(area => {
     if (area.owner !== 'neutral') {
       area.virusCount += area.growthRate;
+      // ウイルス数の上限を適用
+      if (area.virusCount > MAX_VIRUS_COUNT) {
+        area.virusCount = MAX_VIRUS_COUNT;
+      }
     }
   });
 }
@@ -437,6 +445,10 @@ function updateAttackBlocks() {
       if (toArea.owner === block.owner) {
         // 自エリアに移動
         toArea.virusCount += movingVirus;
+        // ウイルス数の上限を適用
+        if (toArea.virusCount > MAX_VIRUS_COUNT) {
+          toArea.virusCount = MAX_VIRUS_COUNT;
+        }
       } else if (toArea.owner === 'neutral') {
         // 未占領エリアを占領
         if (movingVirus > toArea.virusCount) {
@@ -459,6 +471,11 @@ function updateAttackBlocks() {
         } else {
           toArea.virusCount -= movingVirus;
         }
+      }
+
+      // ウイルス数の上限を適用（エリアが占領された場合）
+      if (toArea.virusCount > MAX_VIRUS_COUNT) {
+        toArea.virusCount = MAX_VIRUS_COUNT;
       }
 
       // 攻撃ブロックの削除
