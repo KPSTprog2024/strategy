@@ -114,28 +114,31 @@ function createRandomStage(stageNumber) {
   areas = [];
   connections = [];
 
+  // グリッドのサイズを決定
+  const gridSize = Math.ceil(Math.sqrt(numAreas));
+  const gridSpacingX = (canvas.width - 2 * AREA_RADIUS) / (gridSize - 1);
+  const gridSpacingY = (canvas.height - 2 * AREA_RADIUS) / (gridSize - 1);
+
+  // グリッド上の座標をリスト化
+  let gridPositions = [];
+  for (let i = 0; i < gridSize; i++) {
+    for (let j = 0; j < gridSize; j++) {
+      const x = AREA_RADIUS + i * gridSpacingX;
+      const y = AREA_RADIUS + j * gridSpacingY;
+      gridPositions.push({ x, y });
+    }
+  }
+
   // エリアの生成
   for (let i = 0; i < numAreas; i++) {
-    let validPosition = false;
-    let x, y;
-
-    // エリアが重ならないように位置を決定
-    while (!validPosition) {
-      x = Math.floor(Math.random() * (canvas.width - 2 * AREA_RADIUS) + AREA_RADIUS);
-      y = Math.floor(Math.random() * (canvas.height - 2 * AREA_RADIUS) + AREA_RADIUS);
-
-      validPosition = areas.every(area => {
-        const dx = area.x - x;
-        const dy = area.y - y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        return distance > AREA_RADIUS * 2; // エリア同士が重ならない
-      });
-    }
+    // ランダムにグリッドの位置を選択
+    const index = Math.floor(Math.random() * gridPositions.length);
+    const pos = gridPositions.splice(index, 1)[0];
 
     const area = {
       id: i + 1,
-      x: x,
-      y: y,
+      x: pos.x,
+      y: pos.y,
       owner: 'neutral',
       virusCount: Math.floor(Math.random() * 20) + 10, // 10〜30のウイルス数
       growthRate: Math.floor(Math.random() * 3) + 1,   // 1〜3の増殖率
@@ -156,30 +159,39 @@ function createRandomStage(stageNumber) {
   enemyArea.virusCount = 30 + stageNumber * 2; // ステージが進むごとに増加
   enemyArea.growthRate = 1;
 
-  // エリア間の接続を作成（連結性を確保）
-  const shuffledAreas = [...areas].sort(() => Math.random() - 0.5);
-  for (let i = 0; i < shuffledAreas.length - 1; i++) {
-    connections.push([shuffledAreas[i].id, shuffledAreas[i + 1].id]);
-  }
+  // エリア間の接続を作成
+  const areaMap = new Map();
+  areas.forEach(area => {
+    areaMap.set(`${area.x},${area.y}`, area);
+  });
 
-  // ランダムに追加の接続を作成
-  const extraConnections = Math.floor(numAreas * 1.5);
-  for (let i = 0; i < extraConnections; i++) {
-    const area1 = areas[Math.floor(Math.random() * areas.length)];
-    const area2 = areas[Math.floor(Math.random() * areas.length)];
-    if (area1.id !== area2.id) {
-      const connection = [area1.id, area2.id];
-      // 重複する接続を防ぐ
-      if (!connections.some(conn =>
-        (conn[0] === connection[0] && conn[1] === connection[1]) ||
-        (conn[0] === connection[1] && conn[1] === connection[0])
-      )) {
-        connections.push(connection);
-      }
+  let horizontalConnections = 0;
+  let verticalConnections = 0;
+  let diagonalConnections = 0;
+
+  for (let area of areas) {
+    // 横方向の隣接エリア
+    const rightNeighbor = areaMap.get(`${area.x + gridSpacingX},${area.y}`);
+    if (rightNeighbor) {
+      connections.push([area.id, rightNeighbor.id]);
+      horizontalConnections++;
+    }
+
+    // 縦方向の隣接エリア
+    const bottomNeighbor = areaMap.get(`${area.x},${area.y + gridSpacingY}`);
+    if (bottomNeighbor) {
+      connections.push([area.id, bottomNeighbor.id]);
+      verticalConnections++;
+    }
+
+    // 斜め方向の隣接エリア（斜め右下）
+    const diagonalNeighbor = areaMap.get(`${area.x + gridSpacingX},${area.y + gridSpacingY}`);
+    if (diagonalNeighbor && diagonalConnections < Math.floor((horizontalConnections + verticalConnections) / 2)) {
+      connections.push([area.id, diagonalNeighbor.id]);
+      diagonalConnections++;
     }
   }
 }
-
 // エリアの描画
 function drawAreas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
