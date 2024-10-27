@@ -169,13 +169,13 @@ const stages = [
   // ステージ9
   {
     areas: [
-      { id: 1, x: 100, y: 300, owner: 'player', virusCount: 45, growthRate: 1 },
+      { id: 1, x: 100, y: 300, owner: 'player', virusCount: 25, growthRate: 1 },
       { id: 2, x: 250, y: 150, owner: 'neutral', virusCount: 20, growthRate: 2 },
       { id: 3, x: 250, y: 450, owner: 'neutral', virusCount: 35, growthRate: 2 },
-      { id: 4, x: 400, y: 300, owner: 'neutral', virusCount: 55, growthRate: 2 },
+      { id: 4, x: 400, y: 300, owner: 'neutral', virusCount: 40, growthRate: 2 },
       { id: 5, x: 550, y: 150, owner: 'neutral', virusCount: 35, growthRate: 2 },
       { id: 6, x: 550, y: 450, owner: 'neutral', virusCount: 20, growthRate: 2 },
-      { id: 7, x: 700, y: 300, owner: 'enemy', virusCount: 50, growthRate: 2 },
+      { id: 7, x: 700, y: 300, owner: 'enemy', virusCount: 30, growthRate: 2 },
     ],
     connections: [
       [1, 2],
@@ -193,12 +193,12 @@ const stages = [
   // ステージ10
   {
     areas: [
-      { id: 1, x: 400, y: 50, owner: 'player', virusCount: 50, growthRate: 1 },
-      { id: 2, x: 200, y: 200, owner: 'neutral', virusCount: 40, growthRate: 2 },
-      { id: 3, x: 600, y: 200, owner: 'neutral', virusCount: 40, growthRate: 2 },
-      { id: 4, x: 400, y: 350, owner: 'neutral', virusCount: 40, growthRate: 2 },
-      { id: 5, x: 200, y: 500, owner: 'enemy', virusCount: 55, growthRate: 1 },
-      { id: 6, x: 600, y: 500, owner: 'enemy', virusCount: 55, growthRate: 1 },
+      { id: 1, x: 400, y: 50, owner: 'player', virusCount: 40, growthRate: 1 },
+      { id: 2, x: 200, y: 200, owner: 'neutral', virusCount: 30, growthRate: 2 },
+      { id: 3, x: 600, y: 200, owner: 'neutral', virusCount: 30, growthRate: 2 },
+      { id: 4, x: 400, y: 350, owner: 'neutral', virusCount: 30, growthRate: 2 },
+      { id: 5, x: 200, y: 500, owner: 'enemy', virusCount: 35, growthRate: 1 },
+      { id: 6, x: 600, y: 500, owner: 'enemy', virusCount: 35, growthRate: 1 },
     ],
     connections: [
       [1, 2],
